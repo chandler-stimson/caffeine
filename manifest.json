@@ -1,30 +1,33 @@
 {
-  "manifest_version": 2,
-  "version": "0.1.0",
-  "name": "Caffeine",
-  "description": "Keep awake which prevents the OS from automatically going to sleep, dimming the screen or starting screen savers",
+  "manifest_version": 3,
+  "version": "0.2.0",
+  "name": "Caffeine - Keep Awake",
+  "description": "Keep system or display awake by overriding power-saving settings, which prevents dimming of the screen, or starting a screen saver",
   "permissions": [
     "storage",
     "power",
-    "contextMenus"
+    "contextMenus",
+    "alarms"
+  ],
+  "optional_permissions": [
+    "downloads"
   ],
   "icons": {
     "16": "data/icons/16.png",
-    "19": "data/icons/19.png",
     "32": "data/icons/32.png",
-    "38": "data/icons/38.png",
     "48": "data/icons/48.png",
     "64": "data/icons/64.png",
     "128": "data/icons/128.png",
-    "256": "data/icons/256.png",
-    "512": "data/icons/512.png"
+    "256": "data/icons/256.png"
   },
   "background": {
-    "persistent": false,
-    "scripts": [
-      "background.js"
-    ]
+    "service_worker": "worker.js"
   },
-  "browser_action": {},
-  "homepage_url": "https://add0n.com/caffeine.html"
+  "action": {},
+  "homepage_url": "https://add0n.com/caffeine.html",
+  "commands": {
+    "_execute_action": {
+      "description": "Press the action button"
+    }
+  }
 }
