@@ -3,13 +3,14 @@ self.importScripts('downloads.js');
 
 const update = reason => chrome.storage.local.get({
   'enabled': false,
-  'level': 'display',
+  'level': 'display'
+}, p1 => chrome.storage.session.get({
   'secondary-enabled': false
-}, prefs => {
+}, p2 => {
   chrome.alarms.getAll(as => {
-    let b = prefs.enabled ? (as.length ? 'timer' : '') : 'disabled';
-    if (prefs['secondary-enabled']) {
-      b = prefs.enabled ? 'downloads/active' : 'downloads/disabled';
+    let b = p1.enabled ? (as.length ? 'timer' : '') : 'disabled';
+    if (p2['secondary-enabled']) {
+      b = p1.enabled ? 'downloads/active' : 'downloads/disabled';
     }
     chrome.action.setIcon({
       path: {
@@ -20,18 +21,18 @@ const update = reason => chrome.storage.local.get({
     });
 
     chrome.power.releaseKeepAwake();
-    if (prefs.enabled || prefs['secondary-enabled']) {
+    if (p1.enabled || p2['secondary-enabled']) {
       let title = 'Caffeine is Enabled at "[level]" level';
-      if (prefs.enabled === false) {
+      if (p1.enabled === false) {
         title = title.replace('Enabled', 'only Enabled while Downloading');
       }
       if (as.length) {
         title += ' for [timeout] minutes';
       }
 
-      chrome.power.requestKeepAwake(prefs.level);
+      chrome.power.requestKeepAwake(p1.level);
       chrome.action.setTitle({
-        title: title.replace('[level]', prefs.level).replace('[timeout]', as[0]?.name.replace('timeout.', ''))
+        title: title.replace('[level]', p1.level).replace('[timeout]', as[0]?.name.replace('timeout.', ''))
       });
     }
     else {
@@ -41,7 +42,7 @@ const update = reason => chrome.storage.local.get({
       chrome.alarms.clearAll();
     }
   });
-});
+}));
 
 chrome.action.onClicked.addListener(() => chrome.storage.local.get({
   enabled: false
