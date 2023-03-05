@@ -16,8 +16,8 @@
       if (prefs.downloads) {
         chrome.downloads.onChanged.addListener(observe);
       }
+      observe();
     }
-    observe();
   });
   register();
   chrome.storage.onChanged.addListener(ps => ps.downloads && register());

@@ -58,13 +58,24 @@
       type: 'checkbox',
       checked: prefs.downloads
     });
+    chrome.contextMenus.create({
+      id: 'icons',
+      title: 'Icon Colors',
+      contexts: ['action']
+    });
   });
 
   chrome.runtime.onStartup.addListener(once);
   chrome.runtime.onInstalled.addListener(once);
 }
-chrome.contextMenus.onClicked.addListener(info => {
-  if (info.menuItemId.startsWith('level.')) {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'icons') {
+    chrome.tabs.create({
+      url: chrome.runtime.getManifest().homepage_url + '#faq5',
+      index: tab.index + 1
+    });
+  }
+  else if (info.menuItemId.startsWith('level.')) {
     chrome.storage.local.set({
       level: info.menuItemId.replace('level.', '')
     });

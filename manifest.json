@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "name": "Caffeine - Keep Awake",
   "description": "Keep system or display awake by overriding power-saving settings, which prevents dimming of the screen, or starting a screen saver",
   "permissions": [
@@ -24,10 +24,8 @@
     "service_worker": "worker.js"
   },
   "action": {},
-  "homepage_url": "https://add0n.com/caffeine.html",
+  "homepage_url": "https://webextension.org/listing/caffeine.html",
   "commands": {
-    "_execute_action": {
-      "description": "Press the action button"
-    }
+    "_execute_action": {}
   }
 }

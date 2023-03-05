@@ -7,6 +7,8 @@ const update = reason => chrome.storage.local.get({
 }, p1 => chrome.storage.session.get({
   'secondary-enabled': false
 }, p2 => {
+  console.info('updating: ', reason);
+
   chrome.alarms.getAll(as => {
     let b = p1.enabled ? (as.length ? 'timer' : '') : 'disabled';
     if (p2['secondary-enabled']) {
