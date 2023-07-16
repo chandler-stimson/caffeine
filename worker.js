@@ -1,9 +1,18 @@
 self.importScripts('context.js');
 self.importScripts('downloads.js');
 
+{
+  const once = () => chrome.action.setBadgeBackgroundColor({
+    color: '#666'
+  });
+  chrome.runtime.onInstalled.addListener(once);
+  chrome.runtime.onStartup.addListener(once);
+}
+
 const update = reason => chrome.storage.local.get({
   'enabled': false,
-  'level': 'display'
+  'level': 'display',
+  'badge': ''
 }, p1 => chrome.storage.session.get({
   'secondary-enabled': false
 }, p2 => {
@@ -16,10 +25,13 @@ const update = reason => chrome.storage.local.get({
     }
     chrome.action.setIcon({
       path: {
-        '16': 'data/icons/' + b + '/16.png',
-        '32': 'data/icons/' + b + '/32.png',
-        '48': 'data/icons/' + b + '/48.png'
+        '16': '/data/icons/' + b + '/16.png',
+        '32': '/data/icons/' + b + '/32.png',
+        '48': '/data/icons/' + b + '/48.png'
       }
+    });
+    chrome.action.setBadgeText({
+      text: b === 'disabled' ? p1.badge : ''
     });
 
     chrome.power.releaseKeepAwake();
@@ -55,7 +67,7 @@ chrome.action.onClicked.addListener(() => chrome.storage.local.get({
 }));
 
 chrome.storage.onChanged.addListener(ps => {
-  if (ps.level || ps.enabled) {
+  if (ps.level || ps.enabled || ps.badge) {
     update('prefs.changed');
   }
 });

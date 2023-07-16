@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "name": "Caffeine - Keep Awake",
-  "description": "Keep system or display awake by overriding power-saving settings, which prevents dimming of the screen, or starting a screen saver",
+  "description": "Prevent screen dimming or activating a screen saver by overriding power-saving settings to keep the system or display awake",
   "permissions": [
     "storage",
     "power",
@@ -13,12 +13,12 @@
     "downloads"
   ],
   "icons": {
-    "16": "data/icons/16.png",
-    "32": "data/icons/32.png",
-    "48": "data/icons/48.png",
-    "64": "data/icons/64.png",
-    "128": "data/icons/128.png",
-    "256": "data/icons/256.png"
+    "16": "/data/icons/16.png",
+    "32": "/data/icons/32.png",
+    "48": "/data/icons/48.png",
+    "64": "/data/icons/64.png",
+    "128": "/data/icons/128.png",
+    "256": "/data/icons/256.png"
   },
   "background": {
     "service_worker": "worker.js"

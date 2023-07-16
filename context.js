@@ -24,8 +24,16 @@
       period: 24 * 60,
       title: '24 Hours'
     }],
-    downloads: false
+    downloads: false,
+    badge: ''
   }, prefs => {
+    chrome.contextMenus.create({
+      id: 'downloads',
+      title: 'Keep Awake while Downloading a File',
+      contexts: ['action'],
+      type: 'checkbox',
+      checked: prefs.downloads
+    });
     chrome.contextMenus.create({
       id: 'level.system',
       title: 'System Level',
@@ -52,15 +60,45 @@
       contexts: ['action']
     }));
     chrome.contextMenus.create({
-      id: 'downloads',
-      title: 'Keep Awake while Downloading a File',
+      id: 'badge',
+      title: 'Badge Disabled Symbol',
+      contexts: ['action']
+    });
+    chrome.contextMenus.create({
+      id: 'badge.0',
+      title: 'no symbol',
+      type: 'radio',
       contexts: ['action'],
-      type: 'checkbox',
-      checked: prefs.downloads
+      checked: prefs.badge === '',
+      parentId: 'badge'
+    });
+    chrome.contextMenus.create({
+      id: 'badge.d',
+      title: '"d" symbol',
+      type: 'radio',
+      contexts: ['action'],
+      checked: prefs.badge === 'd',
+      parentId: 'badge'
+    });
+    chrome.contextMenus.create({
+      id: 'badge.×',
+      title: '"×" symbol',
+      type: 'radio',
+      contexts: ['action'],
+      checked: prefs.badge === '×',
+      parentId: 'badge'
+    });
+    chrome.contextMenus.create({
+      id: 'badge.•',
+      title: '"•" symbol',
+      type: 'radio',
+      contexts: ['action'],
+      checked: prefs.badge === '•',
+      parentId: 'badge'
     });
     chrome.contextMenus.create({
       id: 'icons',
-      title: 'Icon Colors',
+      title: 'Icon Color Codes',
       contexts: ['action']
     });
   });
@@ -100,6 +138,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         downloads: false
       });
     }
+  }
+  else if (info.menuItemId.startsWith('badge.')) {
+    chrome.storage.local.set({
+      'badge': info.menuItemId === 'badge.0' ? '' : info.menuItemId.at(-1)
+    });
   }
   else {
     chrome.alarms.clearAll(() => {
