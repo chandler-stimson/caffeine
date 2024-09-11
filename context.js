@@ -1,4 +1,16 @@
 /* global update */
+
+const schedule = minutes => {
+  chrome.alarms.clearAll(() => {
+    chrome.alarms.create('timeout.' + minutes, {
+      when: Date.now() + Number(minutes) * 60 * 1000
+    });
+    chrome.storage.local.set({
+      enabled: true
+    }, () => update('timer.set')); // update is required since the extension might be enabled when timer is set
+  });
+};
+
 {
   const once = () => chrome.storage.local.get({
     level: 'display',
@@ -25,6 +37,7 @@
       title: '24 Hours'
     }],
     downloads: false,
+    aggressive: 'reportActivity' in chrome.power,
     badge: ''
   }, prefs => {
     chrome.contextMenus.create({
@@ -46,7 +59,15 @@
       title: 'Display Level',
       type: 'radio',
       contexts: ['action'],
-      checked: prefs.level === 'display'
+      checked: prefs.level === 'display' && prefs.aggressive === false
+    });
+    chrome.contextMenus.create({
+      id: 'level.aggressive',
+      title: 'Aggressive Level (ChromeOS)',
+      type: 'radio',
+      contexts: ['action'],
+      checked: prefs.level === 'display' && prefs.aggressive === true,
+      enabled: 'reportActivity' in chrome.power
     });
     chrome.contextMenus.create({
       id: 'timeout',
@@ -59,6 +80,18 @@
       title,
       contexts: ['action']
     }));
+    chrome.contextMenus.create({
+      id: 'saddsfsf',
+      parentId: 'timeout',
+      type: 'separator',
+      contexts: ['action']
+    });
+    chrome.contextMenus.create({
+      id: '-1',
+      parentId: 'timeout',
+      title: 'Custom Period',
+      contexts: ['action']
+    });
     chrome.contextMenus.create({
       id: 'badge',
       title: 'Badge Disabled Symbol',
@@ -114,9 +147,18 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   }
   else if (info.menuItemId.startsWith('level.')) {
-    chrome.storage.local.set({
-      level: info.menuItemId.replace('level.', '')
-    });
+    if (info.menuItemId === 'level.aggressive') {
+      chrome.storage.local.set({
+        level: 'display',
+        aggressive: true
+      });
+    }
+    else {
+      chrome.storage.local.set({
+        level: info.menuItemId.replace('level.', ''),
+        aggressive: false
+      });
+    }
   }
   else if (info.menuItemId === 'downloads') {
     if (info.checked) {
@@ -145,13 +187,29 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   }
   else {
-    chrome.alarms.clearAll(() => {
-      chrome.alarms.create('timeout.' + info.menuItemId, {
-        when: Date.now() + Number(info.menuItemId) * 60 * 1000
+    if (info.menuItemId === '-1') {
+      chrome.offscreen.createDocument({
+        url: '/data/offscreen/index.html',
+        reasons: ['IFRAME_SCRIPTING'],
+        justification: 'Ask custom timer period from user'
       });
-      chrome.storage.local.set({
-        enabled: true
-      }, () => update('timer.set')); // update is required since the extension might be enabled when timer is set
-    });
+    }
+    else {
+      schedule(info.menuItemId);
+    }
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, response) => {
+  if (request.method === 'custom.timeout') {
+    if (request.active) {
+      schedule(request.minutes);
+    }
+    else {
+      chrome.alarms.clearAll(() => chrome.storage.local.set({
+        enabled: false
+      }));
+    }
+    response(true);
   }
 });

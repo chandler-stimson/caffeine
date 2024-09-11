@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
-  "version": "0.2.4",
+  "version": "0.2.7",
   "name": "Caffeine - Keep Awake",
   "description": "Prevent screen dimming or activating a screen saver by overriding power-saving settings to keep the system or display awake",
   "permissions": [
     "storage",
     "power",
+    "idle",
     "contextMenus",
-    "alarms"
+    "alarms",
+    "offscreen"
   ],
   "optional_permissions": [
     "downloads"
