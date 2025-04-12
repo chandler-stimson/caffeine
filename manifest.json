@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "name": "Caffeine - Keep Awake",
   "description": "Prevent screen dimming or activating a screen saver by overriding power-saving settings to keep the system or display awake",
   "permissions": [
@@ -25,7 +25,13 @@
   "background": {
     "service_worker": "worker.js"
   },
-  "action": {},
+  "action": {
+    "default_icon": {
+      "16": "/data/icons/disabled/16.png",
+      "32": "/data/icons/disabled/32.png",
+      "48": "/data/icons/disabled/48.png"
+    }
+  },
   "homepage_url": "https://webextension.org/listing/caffeine.html",
   "commands": {
     "_execute_action": {}

@@ -2,23 +2,34 @@ self.importScripts('context.js');
 self.importScripts('downloads.js');
 
 {
-  const once = () => chrome.action.setBadgeBackgroundColor({
-    color: '#666'
-  });
+  const once = () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+    chrome.action.setBadgeBackgroundColor({
+      color: '#666'
+    });
+  };
   chrome.runtime.onInstalled.addListener(once);
   chrome.runtime.onStartup.addListener(once);
 }
 
-const update = reason => chrome.storage.local.get({
-  'enabled': false,
-  'level': 'display',
-  'badge': ''
-}, p1 => chrome.storage.session.get({
-  'secondary-enabled': false
-}, p2 => {
-  console.info('updating: ', reason);
+const update = async reason => {
+  try {
+    const p1 = await chrome.storage.local.get({
+      'enabled': false,
+      'level': 'display',
+      'badge': ''
+    });
+    const p2 = await chrome.storage.session.get({
+      'secondary-enabled': false
+    });
 
-  chrome.alarms.getAll(as => {
+    console.info('updating: ', reason);
+
+    const as = await chrome.alarms.getAll();
+
     let b = p1.enabled ? (as.length ? 'timer' : '') : 'disabled';
     if (p2['secondary-enabled']) {
       b = p1.enabled ? 'downloads/active' : 'downloads/disabled';
@@ -34,7 +45,8 @@ const update = reason => chrome.storage.local.get({
       text: b === 'disabled' ? p1.badge : ''
     });
 
-    chrome.power.releaseKeepAwake();
+    await chrome.power.releaseKeepAwake();
+
     if (p1.enabled || p2['secondary-enabled']) {
       let title = 'Caffeine is Enabled at "[level]" level';
       if (p1.enabled === false) {
@@ -44,7 +56,8 @@ const update = reason => chrome.storage.local.get({
         title += ' for [timeout] minutes';
       }
 
-      chrome.power.requestKeepAwake(p1.level);
+      await chrome.power.requestKeepAwake(p1.level);
+
       chrome.action.setTitle({
         title: title.replace('[level]', p1.level).replace('[timeout]', as[0]?.name.replace('timeout.', ''))
       });
@@ -55,16 +68,29 @@ const update = reason => chrome.storage.local.get({
       });
       chrome.alarms.clearAll();
     }
-  });
-}));
+    chrome.action.setBadgeText({
+      text: ''
+    });
+  }
+  catch (e) {
+    console.error(e);
+    chrome.action.setTitle({
+      title: e.message
+    });
+    chrome.action.setBadgeText({
+      text: 'E'
+    });
+  }
+};
 
-chrome.action.onClicked.addListener(() => chrome.storage.local.get({
-  enabled: false
-}, prefs => {
+chrome.action.onClicked.addListener(async () => {
+  const prefs = await chrome.storage.local.get({
+    enabled: false
+  });
   chrome.storage.local.set({
     enabled: prefs.enabled === false
   });
-}));
+});
 
 chrome.storage.onChanged.addListener(ps => {
   if (ps.level || ps.enabled || ps.badge) {
