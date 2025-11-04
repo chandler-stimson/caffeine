@@ -1,45 +1,50 @@
 /* global update */
 
-const schedule = minutes => {
-  chrome.alarms.clearAll(() => {
-    chrome.alarms.create('timeout.' + minutes, {
-      when: Date.now() + Number(minutes) * 60 * 1000
-    });
-    chrome.storage.local.set({
-      enabled: true
-    }, () => update('timer.set')); // update is required since the extension might be enabled when timer is set
+const schedule = async minutes => {
+  await chrome.alarms.clearAll();
+  await chrome.alarms.create('timeout.' + minutes, {
+    when: Date.now() + Number(minutes) * 60 * 1000
   });
+  await chrome.storage.local.set({
+    enabled: true
+  });
+  update('timer.set'); // update is required since the extension might be enabled when timer is set
 };
 
 {
-  const once = () => chrome.storage.local.get({
-    level: 'display',
-    timeouts: [{
-      period: 5,
-      title: '5 Minutes'
-    }, {
-      period: 15,
-      title: '15 Minutes'
-    }, {
-      period: 30,
-      title: '30 Minutes'
-    }, {
-      period: 60,
-      title: '1 Hour'
-    }, {
-      period: 6 * 60,
-      title: '6 Hours'
-    }, {
-      period: 12 * 60,
-      title: '12 Hours'
-    }, {
-      period: 24 * 60,
-      title: '24 Hours'
-    }],
-    downloads: false,
-    aggressive: 'reportActivity' in chrome.power,
-    badge: ''
-  }, prefs => {
+  const once = async () => {
+    if (once.done) {
+      return;
+    }
+    once.done = true;
+    const prefs = await chrome.storage.local.get({
+      level: 'display',
+      timeouts: [{
+        period: 5,
+        title: '5 Minutes'
+      }, {
+        period: 15,
+        title: '15 Minutes'
+      }, {
+        period: 30,
+        title: '30 Minutes'
+      }, {
+        period: 60,
+        title: '1 Hour'
+      }, {
+        period: 6 * 60,
+        title: '6 Hours'
+      }, {
+        period: 12 * 60,
+        title: '12 Hours'
+      }, {
+        period: 24 * 60,
+        title: '24 Hours'
+      }],
+      downloads: false,
+      aggressive: 'reportActivity' in chrome.power,
+      badge: ''
+    });
     chrome.contextMenus.create({
       id: 'downloads',
       title: 'Keep Awake while Downloading a File',
@@ -134,12 +139,12 @@ const schedule = minutes => {
       title: 'Icon Color Codes',
       contexts: ['action']
     });
-  });
+  };
 
   chrome.runtime.onStartup.addListener(once);
   chrome.runtime.onInstalled.addListener(once);
 }
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'icons') {
     chrome.tabs.create({
       url: chrome.runtime.getManifest().homepage_url + '#faq5',
@@ -162,18 +167,23 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
   else if (info.menuItemId === 'downloads') {
     if (info.checked) {
-      chrome.permissions.request({
-        permissions: ['downloads']
-      }, granted => {
-        chrome.storage.local.set({
-          downloads: granted
+      try {
+        const granted = await chrome.permissions.request({
+          permissions: ['downloads']
         });
-        if (granted === false) {
-          chrome.contextMenus.update('downloads', {
-            checked: false
-          });
+        if (!granted) {
+          throw Error('ABORTED');
         }
-      });
+        chrome.storage.local.set({
+          downloads: true
+        });
+      }
+      catch (e) {
+        console.error(e);
+        chrome.contextMenus.update('downloads', {
+          checked: false
+        });
+      }
     }
     else {
       chrome.storage.local.set({
