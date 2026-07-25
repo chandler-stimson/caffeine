@@ -5,6 +5,7 @@ const schedule = async minutes => {
   await chrome.alarms.create('timeout.' + minutes, {
     when: Date.now() + Number(minutes) * 60 * 1000
   });
+
   await chrome.storage.local.set({
     enabled: true
   });

@@ -1,3 +1,4 @@
+/* global schedule */
 self.importScripts('context.js');
 self.importScripts('downloads.js');
 
@@ -136,6 +137,80 @@ if ('reportActivity' in chrome.power) {
     }
   });
 }
+
+/* external access */
+chrome.runtime.onConnectExternal.addListener(eport => {
+  eport.onMessage.addListener(request => {
+    if (request.cmd === 'keep-awake') {
+      if (request['for-minutes']) {
+        schedule(request['for-minutes']).then(() => eport.postMessage({
+          cmd: 'report',
+          value: 'Keep awake configured for the defined period'
+        })).catch(e => {
+          console.error(e);
+          eport.postMessage({
+            error: 'Keep awake request failed: ' + e.message
+          });
+        });
+      }
+      else {
+        chrome.storage.local.set({
+          enabled: true
+        });
+        eport.postMessage({
+          cmd: 'report',
+          value: 'Keep awake is enabled'
+        });
+      }
+    }
+    else if (request.cmd === 'release-awake') {
+      chrome.storage.local.set({
+        enabled: false
+      });
+      eport.postMessage({
+        cmd: 'report',
+        value: 'Keep awake is disabled'
+      });
+    }
+    else if (request.cmd === 'set-level') {
+      chrome.storage.local.set({
+        level: request.level,
+        aggressive: request.aggressive || false
+      });
+      eport.postMessage({
+        cmd: 'report',
+        value: 'Level changed'
+      });
+    }
+    else if (request.cmd === 'get-values') {
+      chrome.storage.local.get({
+        aggressive: 'reportActivity' in chrome.power,
+        level: 'display',
+        enabled: false
+      }).then(prefs => eport.postMessage({
+        cmd: 'values',
+        value: prefs
+      }));
+    }
+  });
+});
+
+/* cross-extension MCP support */
+chrome.runtime.onMessageExternal.addListener((request, sender, response) => {
+  if (request.cmd === 'mcp.json') {
+    fetch('mcp/mcp.json').then(r => r.json()).then(response);
+    return true;
+  }
+  else if (request.cmd === 'mcp.output') {
+    fetch('mcp/mcp.output').then(r => r.text()).then(response);
+    return true;
+  }
+  else {
+    response({
+      error: 'unknown-request'
+    });
+  }
+});
 
 /* FAQs & Feedback */
 {

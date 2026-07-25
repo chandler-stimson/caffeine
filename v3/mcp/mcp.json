@@ -1,0 +1,176 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "tools": [
+      {
+        "name": "ka_awake_keep",
+        "description": "Enable keep-awake mode to prevent the system from sleeping. Optionally specify a duration in minutes.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["keep-awake"],
+              "description": "Must be 'keep-awake'"
+            },
+            "for-minutes": {
+              "type": "number",
+              "description": "Optional duration in minutes to keep the system awake. If not provided, keep-awake is enabled indefinitely.",
+              "optional": true,
+              "minimum": 1
+            }
+          },
+          "required": ["cmd"]
+        },
+        "outputSchema": {
+          "type": "object",
+          "description": "Response from the keep-awake request",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["report"],
+              "description": "Command identifier for report result"
+            },
+            "value": {
+              "type": "string",
+              "description": "Human-readable status message"
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message if the request failed"
+            }
+          }
+        }
+      },
+      {
+        "name": "ka_awake_release",
+        "description": "Disable keep-awake mode and allow the system to sleep normally.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["release-awake"],
+              "description": "Must be 'release-awake'"
+            }
+          },
+          "required": ["cmd"]
+        },
+        "outputSchema": {
+          "type": "object",
+          "description": "Response from the release-awake request",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["report"],
+              "description": "Command identifier for report result"
+            },
+            "value": {
+              "type": "string",
+              "description": "Human-readable status message"
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message if the request failed"
+            }
+          }
+        }
+      },
+      {
+        "name": "ka_awake_set_level",
+        "description": "Set the power level and aggressiveness for keep-awake behavior.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["set-level"],
+              "description": "Must be 'set-level'"
+            },
+            "level": {
+              "type": "string",
+              "enum": ["display", "system"],
+              "description": "Power level to set. 'display' keeps display on, 'system' keeps CPU active"
+            },
+            "aggressive": {
+              "type": "boolean",
+              "description": "Whether to use aggressive mode (requires 'reportActivity' capability and useful for ChromeOS)",
+              "default": false,
+              "optional": true
+            }
+          },
+          "required": ["cmd", "level"]
+        },
+        "outputSchema": {
+          "type": "object",
+          "description": "Response from the set-level request",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["report"],
+              "description": "Command identifier for report result"
+            },
+            "value": {
+              "type": "string",
+              "description": "Human-readable status message"
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message if the request failed"
+            }
+          }
+        }
+      },
+      {
+        "name": "ka_awake_get_values",
+        "description": "Get current keep-awake settings and capabilities.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["get-values"],
+              "description": "Must be 'get-values'"
+            }
+          },
+          "required": ["cmd"]
+        },
+        "outputSchema": {
+          "type": "object",
+          "description": "Current keep-awake preferences",
+          "properties": {
+            "cmd": {
+              "type": "string",
+              "enum": ["values"],
+              "description": "Command identifier for values result"
+            },
+            "value": {
+              "type": "object",
+              "description": "Preference values",
+              "properties": {
+                "aggressive": {
+                  "type": "boolean",
+                  "description": "Whether aggressive mode is available/enabled"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["display", "system"],
+                  "description": "Current power level setting"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether keep-awake is currently enabled"
+                }
+              },
+              "required": ["aggressive", "level", "enabled"]
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message if the request failed"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
