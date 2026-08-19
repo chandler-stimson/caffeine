@@ -13,6 +13,7 @@ const schedule = async minutes => {
 };
 
 {
+  const isFF = navigator.userAgent.includes('Firefox');
   const once = async () => {
     if (once.done) {
       return;
@@ -46,6 +47,7 @@ const schedule = async minutes => {
       aggressive: 'reportActivity' in chrome.power,
       badge: ''
     });
+
     chrome.contextMenus.create({
       id: 'downloads',
       title: 'Keep Awake while Downloading a File',
@@ -53,19 +55,32 @@ const schedule = async minutes => {
       type: 'checkbox',
       checked: prefs.downloads
     });
+    if (isFF) {
+      chrome.contextMenus.update('downloads', {
+        checked: prefs.downloads
+      });
+    }
+    chrome.contextMenus.create({
+      id: 'level',
+      title: 'Level',
+      contexts: ['action']
+    });
     chrome.contextMenus.create({
       id: 'level.system',
       title: 'System Level',
       type: 'radio',
       contexts: ['action'],
-      checked: prefs.level === 'system'
+      checked: prefs.level === 'system',
+      enabled: isFF === false,
+      parentId: 'level'
     });
     chrome.contextMenus.create({
       id: 'level.display',
       title: 'Display Level',
       type: 'radio',
       contexts: ['action'],
-      checked: prefs.level === 'display' && prefs.aggressive === false
+      checked: prefs.level === 'display' && prefs.aggressive === false,
+      parentId: 'level'
     });
     chrome.contextMenus.create({
       id: 'level.aggressive',
@@ -73,7 +88,8 @@ const schedule = async minutes => {
       type: 'radio',
       contexts: ['action'],
       checked: prefs.level === 'display' && prefs.aggressive === true,
-      enabled: 'reportActivity' in chrome.power
+      enabled: 'reportActivity' in chrome.power,
+      parentId: 'level'
     });
     chrome.contextMenus.create({
       id: 'timeout',
@@ -86,18 +102,20 @@ const schedule = async minutes => {
       title,
       contexts: ['action']
     }));
-    chrome.contextMenus.create({
-      id: 'saddsfsf',
-      parentId: 'timeout',
-      type: 'separator',
-      contexts: ['action']
-    });
-    chrome.contextMenus.create({
-      id: '-1',
-      parentId: 'timeout',
-      title: 'Custom Period',
-      contexts: ['action']
-    });
+    if (isFF === false) {
+      chrome.contextMenus.create({
+        id: 'saddsfsf',
+        parentId: 'timeout',
+        type: 'separator',
+        contexts: ['action']
+      });
+      chrome.contextMenus.create({
+        id: '-1',
+        parentId: 'timeout',
+        title: 'Custom Period',
+        contexts: ['action']
+      });
+    }
     chrome.contextMenus.create({
       id: 'badge',
       title: 'Badge Disabled Symbol',

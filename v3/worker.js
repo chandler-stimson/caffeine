@@ -1,6 +1,9 @@
 /* global schedule */
-self.importScripts('context.js');
-self.importScripts('downloads.js');
+
+if (typeof importScripts !== 'undefined') {
+  self.importScripts('context.js');
+  self.importScripts('downloads.js');
+}
 
 {
   const once = () => {
@@ -17,6 +20,12 @@ self.importScripts('downloads.js');
 }
 
 const update = async reason => {
+  if (update.busy) {
+    console.info('[update skipped]', reason);
+    return;
+  }
+  console.info('[update]', reason);
+  update.busy = true;
   try {
     const p1 = await chrome.storage.local.get({
       'enabled': false,
@@ -26,8 +35,6 @@ const update = async reason => {
     const p2 = await chrome.storage.session.get({
       'secondary-enabled': false
     });
-
-    console.info('updating: ', reason);
 
     const as = await chrome.alarms.getAll();
 
@@ -42,12 +49,8 @@ const update = async reason => {
         '48': '/data/icons/' + b + '/48.png'
       }
     });
-    chrome.action.setBadgeText({
-      text: b === 'disabled' ? p1.badge : ''
-    });
 
-    await chrome.power.releaseKeepAwake();
-
+    let c = '';
     if (p1.enabled || p2['secondary-enabled']) {
       let title = 'Caffeine is Enabled at "[level]" level';
       if (p1.enabled === false) {
@@ -56,8 +59,7 @@ const update = async reason => {
       if (as.length) {
         title += ' for [timeout] minutes';
       }
-
-      await chrome.power.requestKeepAwake(p1.level);
+      c = p1.level;
 
       chrome.action.setTitle({
         title: title.replace('[level]', p1.level).replace('[timeout]', as[0]?.name.replace('timeout.', ''))
@@ -69,9 +71,18 @@ const update = async reason => {
       });
       chrome.alarms.clearAll();
     }
-    chrome.action.setBadgeText({
-      text: ''
-    });
+    if (c) {
+      await chrome.power.requestKeepAwake(p1.level);
+      chrome.action.setBadgeText({
+        text: ''
+      });
+    }
+    else {
+      chrome.action.setBadgeText({
+        text: p1.badge
+      });
+      await chrome.power.releaseKeepAwake();
+    }
   }
   catch (e) {
     console.error(e);
@@ -82,6 +93,7 @@ const update = async reason => {
       text: 'E'
     });
   }
+  update.busy = false;
 };
 
 chrome.action.onClicked.addListener(async () => {
@@ -130,7 +142,7 @@ if ('reportActivity' in chrome.power) {
       }, prefs => {
         if (prefs.enabled && prefs.aggressive) {
           chrome.power.reportActivity(() => {
-            console.log('report activity');
+            console.info('report activity');
           });
         }
       });

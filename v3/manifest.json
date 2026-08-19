@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "name": "Caffeine - Keep Awake",
   "description": "Prevent screen dimming or activating a screen saver by overriding power-saving settings to keep the system or display awake",
   "permissions": [
@@ -24,7 +24,13 @@
     "512": "data/icons/512.png"
   },
   "background": {
-    "service_worker": "worker.js"
+    "service_worker": "worker.js",
+    "scripts": [
+      "firefox.js",
+      "context.js",
+      "downloads.js",
+      "worker.js"
+    ]
   },
   "action": {
     "default_icon": {
